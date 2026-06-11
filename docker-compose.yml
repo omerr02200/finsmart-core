@@ -1,0 +1,21 @@
+services:
+  finsmart-core-postgres:
+    image: postgres:15-alpine
+    container_name: finsmart-core-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: finsmart_core_db
+    volumes:
+      - finsmart_core_pg_data:/var/lib/postgrsql/data
+
+  finsmart-core-redis:
+    image: redis:7-alpine
+    container_name: finsmart-core-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  finsmart_core_pg_data:
