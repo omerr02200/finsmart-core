@@ -29,6 +29,20 @@ public class SecurityConfig {
                 )
                 .sessionManagement(sess ->
                         sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(401);
+                            response.getWriter().write("{\success\":false, \"message\":\"Bu işlem için giriş yapmanız " +
+                                    "veya geçerli bir token göndermeniz gerekmektedir.\",\"data\":null}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(403);
+                            response.getWriter().write("{\"success\":false,\"message\":\"Bu işlemi gerçekleştirmek için" +
+                                    "yetkiniz bulunmamaktadır.\", \"data\":null}");
+                        })
+                )
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

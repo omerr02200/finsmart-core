@@ -54,6 +54,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
@@ -62,12 +63,13 @@ public class AuthService {
                 request.email()).orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
 
         var jwtToken = jwtService.generateToken(user);
-        refreshTokenRepository.deleteByUser(user);
+        //refreshTokenRepository.deleteByUser(user);
+        refreshTokenRepository.deleteByUserTokenTable(user);
         var refreshToken = createRefreshToken(user);
 
         return AuthResponse.builder()
                 .accessToken(jwtToken)
-                .refreshToken(createRefreshToken(user).getToken())
+                .refreshToken(refreshToken.getToken())
                 .build();
     }
 
