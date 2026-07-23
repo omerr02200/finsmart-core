@@ -10,11 +10,12 @@ import java.util.UUID;
 
 public record TransactionResponse(
         UUID id,
+        UUID userId,
         UUID accountId,
-        String name, TransactionType type,
+        String accountName,
+        TransactionType type,
         TransactionCategory category,
         BigDecimal amount,
         String description,
         LocalDate transactionDate,
-        Instant createdAt) {
-}
+        Instant createdAt) { }

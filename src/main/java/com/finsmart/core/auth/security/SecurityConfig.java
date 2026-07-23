@@ -33,7 +33,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setContentType("application/json;charset=UTF-8");
                             response.setStatus(401);
-                            response.getWriter().write("{\success\":false, \"message\":\"Bu işlem için giriş yapmanız " +
+                            response.getWriter().write("{\"success\":false, \"message\":\"Bu işlem için giriş yapmanız " +
                                     "veya geçerli bir token göndermeniz gerekmektedir.\",\"data\":null}");
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {

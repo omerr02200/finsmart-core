@@ -1,6 +1,10 @@
 package com.finsmart.core.finance.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finsmart.core.auth.entities.User;
+import com.finsmart.core.common.outbox.entities.OutboxEvent;
+import com.finsmart.core.common.outbox.entities.OutboxStatus;
+import com.finsmart.core.common.outbox.repositories.OutboxEventRepository;
 import com.finsmart.core.finance.dto.TransactionRequest;
 import com.finsmart.core.finance.dto.TransactionResponse;
 import com.finsmart.core.finance.entities.Account;
@@ -25,6 +29,9 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
 
     private UUID getCurrentUserId() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -57,6 +64,23 @@ public class TransactionService {
         transaction = transactionRepository.saveAndFlush(transaction);
         accountRepository.save(account);
 
+        try {
+            TransactionResponse responseDto = mapToResponse(transaction);
+            String payload = objectMapper.writeValueAsString(responseDto);
+
+            OutboxEvent outboxEvent = OutboxEvent.builder()
+                    .aggregateId(transaction.getId().toString())
+                    .aggregateType("TRANSACTION")
+                    .topic("finance-transactions")
+                    .payload(payload)
+                    .status(OutboxStatus.PENDING)
+                    .build();
+
+            outboxEventRepository.save(outboxEvent);
+        } catch (Exception e) {
+            throw new RuntimeException("Outbox kaydı oluşturulurken hata meydana geldi. İşlem iptal ediliyor.", e);
+        }
+
         return mapToResponse(transaction);
     }
 
@@ -71,6 +95,7 @@ public class TransactionService {
     private TransactionResponse mapToResponse(Transaction transaction) {
         return new TransactionResponse(
                 transaction.getId(),
+                transaction.getAccount().getUserId(),
                 transaction.getAccount().getId(),
                 transaction.getAccount().getName(),
                 transaction.getType(),
